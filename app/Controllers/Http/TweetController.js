@@ -1,31 +1,13 @@
 'use strict'
-
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
-
 const Tweet = use('App/Models/Tweet')
-
 class TweetController {
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index () {
-    const tweets = Tweet.all()
-
-    console.log(tweets)
+  async index() {
+    const tweets = Tweet.query().setVisible(['content']).with('user').fetch()
 
     return tweets
   }
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, auth }) {
+
+  async store({ request, auth }) {
     const data = request.only(['content'])
     const tweet = await Tweet.create({
       user_id: auth.user.id,
@@ -35,31 +17,23 @@ class TweetController {
     return tweet
   }
 
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
-    const tweet = await Tweet.findOrFail(params.id)
+  async show({ params, request, response, view }) {
+    const tweet = await Tweet
+      .query()
+      .setVisible(['content'])
+      .where({
+        id: params.id
+      })
+      .with('user')
+      .fetch()
 
     return tweet
   }
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
+
+  async update({ params, request, response }) {
   }
 
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, auth, response }) {
+  async destroy({ params, request, auth, response }) {
     const tweet = await Tweet.findOrFail(params.id)
 
     if (tweet.user_id !== auth.user.id) {
